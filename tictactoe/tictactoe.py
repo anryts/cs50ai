@@ -5,8 +5,6 @@ from typing import Set
 """
 Tic Tac Toe Player
 """
-# TODO - Implement the following functions (made magic came true):
-
 
 X: str = "X"
 O: str = "O"
@@ -60,7 +58,6 @@ def result(board, action: tuple):
     """
     if action not in actions(board):
         raise Exception("Invalid action")
-    # TODO: delete it
     if action not in actions(board):
         raise Exception("Invalid action")
 
@@ -125,7 +122,6 @@ def utility(board):
         return 0
 
 
-# TODO: find why action is NONE
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
