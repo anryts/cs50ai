@@ -1,5 +1,6 @@
 import math
 import sys
+from random import random, randrange
 from typing import Set
 
 """
@@ -129,22 +130,27 @@ def minimax(board):
     if terminal(board):
         return None
 
+    if board == initial_state():
+        return randrange(0, 3), randrange(0, 3)
+
     current_player = player(board)
     available_actions = actions(board)
+    alpha = -sys.maxsize - 1
+    beta = sys.maxsize
     made_turns = list()
 
     # The maximizing player picks action a in Actions(s)
     # that produces the highest value of Min-Value(Result(s, a)).
     if current_player == X:
         for action in available_actions:
-            made_turns.append([min_value(result(board, action)), action])
+            made_turns.append([min_value(result(board, action), alpha, beta), action])
 
         return max(made_turns)[1]
 
     # let consider that this player will be min
     if current_player == O:
         for action in available_actions:
-            made_turns.append([max_value(result(board, action)), action])
+            made_turns.append([max_value(result(board, action), alpha, beta), action])
 
         return min(made_turns)[1]
 
@@ -160,25 +166,31 @@ def is_value_present(board, target_value) -> bool:
     return False
 
 
-def max_value(board) -> int:
+def max_value(board, alpha, beta) -> int:
     value = -sys.maxsize - 1
 
     if terminal(board):
         return utility(board)
 
     for action in actions(board):
-        value = max(value, min_value(result(board, action)))
+        value = max(value, min_value(result(board, action), alpha, beta))
+        if value >= beta:
+            return value
+        alpha = max(alpha, value)
     return value
 
 
-def min_value(board) -> int:
+def min_value(board, alpha, beta) -> int:
     value = sys.maxsize
 
     if terminal(board):
         return utility(board)
 
     for action in actions(board):
-        value = min(value, max_value(result(board, action)))
+        value = min(value, max_value(result(board, action), alpha, beta))
+        if value <= alpha:
+            return value
+        beta = min(beta, value)
     return value
 
 

@@ -5,7 +5,7 @@ import time
 import tictactoe as ttt
 
 pygame.init()
-size = width, height = 600, 400
+size = width, height = 800, 400
 
 # Colors
 black = (0, 0, 0)
@@ -111,7 +111,6 @@ while True:
         # Check for AI move
         if user != player and not game_over:
             if ai_turn:
-                time.sleep(0.5)
                 move = ttt.minimax(board)
                 board = ttt.result(board, move)
                 ai_turn = False
