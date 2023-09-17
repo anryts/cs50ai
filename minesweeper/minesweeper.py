@@ -1,4 +1,4 @@
-import itertools
+import copy
 import random
 
 
@@ -105,7 +105,7 @@ class Sentence():
         """
         Returns the set of all cells in self.cells known to be mines.
         """
-        if self.count == len(self.cells):
+        if self.count == len(self.cells):  # if all cells are mines
             return self.cells
         return set()
 
@@ -113,7 +113,7 @@ class Sentence():
         """
         Returns the set of all cells in self.cells known to be safe.
         """
-        if self.count == 0:
+        if self.count == 0:  # if count of mines are zero, then all cells are safe
             return self.cells
         return set()
 
@@ -122,17 +122,21 @@ class Sentence():
         Updates internal knowledge representation given the fact that
         a cell is known to be a mine.
         """
-        if cell in self:
+        if cell in self.cells:
             self.cells.remove(cell)
-            self.count += 1
+            self.count -= 1
+        else:
+            pass
 
     def mark_safe(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be safe.
         """
-        if cell in self:
+        if cell in self.cells:
             self.cells.remove(cell)
+        else:
+            pass
 
 
 class MinesweeperAI():
@@ -189,15 +193,52 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
+        #  1) mark the cell as a move that has been made
         self.moves_made.add(cell)
 
+        #  2) mark the cell as safe
         self.mark_safe(cell)
-        self.knowledge(cell, count)
 
-        for cell in self.knowledge: 
+        #    3) add a new sentence to the AI's knowledge base
+        #       based on the value of `cell` and `count`
+        #       find all neighbors and after that, you'll use a formula {A, B, C} = count
+        neighbors = set()
+        for i in range(cell[0] - 1, cell[0] + 2):
+            for j in range(cell[1] - 1, cell[1] + 2):
 
+                # Ignore the cell itself
+                if (i, j) != cell:
+                    neighbors.add((i, j))
 
-    def make_safe_move(self) -> tuple(int, int):
+                # TODO: read this comments
+
+                # If cell are already safe, ignore them
+
+                # If cells are known to be mines, reduce count by 1 and ignore them:
+
+                # Otherwise add them to sentence if they are in the game board
+
+        self.knowledge.append(Sentence(neighbors, count))
+
+        #    4) mark any additional cells as safe or as mines
+        #    if it can be concluded based on the AI's knowledge base
+        knowledge_copy = copy.deepcopy(self.knowledge)
+
+        for sentence in knowledge_copy:
+            mines = sentence.known_mines()
+            safes = sentence.known_safes()
+            # if any of these mines or safes are not discovered yet, we will do this
+            if mines:
+                for mine in mines:
+                    self.mark_mine(mine)
+            if safes:
+                for safe in safes:
+                    self.mark_safe(safe)
+        # TODO: Remove any empty sentences from knowledge base:
+
+        # TODO: Try to infer new sentences from the current ones:
+
+    def make_safe_move(self) -> tuple[int, int]:
         """
         Returns a safe cell to choose on the Minesweeper board.
         The move must be known to be safe, and not already a move
@@ -207,13 +248,14 @@ class MinesweeperAI():
         and self.moves_made, but should not modify any of those values.
         """
         self_cells = self.safes
-        #Intersect by & with two tuples
-        posibly_turns = self.moves_made() & self_cells
+        # Intersect by & with two tuples
+        possibly_turns = list(self.moves_made & self_cells)
+        if len(possibly_turns) == 0:
+            return self.make_random_move()
 
-        return posibly_turns[0]
+        return possibly_turns[0]
 
-
-    def make_random_move(self) -> tuple(int, int):
+    def make_random_move(self) -> tuple[int, int]:
         """
         Returns a move to make on the Minesweeper board.
         Should choose randomly among cells that:
@@ -222,12 +264,10 @@ class MinesweeperAI():
         """
         self_mines = self.mines
         made_turns = self.moves_made
-        posibly_moves = []
-        for i in range(self.height): 
-            for j in range (self.width): 
-                if (i, j) not in made_turns and (i, j) not in self_mines: 
-                    posibly_moves.append(i,j)
+        possibly_moves = []
+        for i in range(self.height):
+            for j in range(self.width):
+                if (i, j) not in made_turns and (i, j) not in self_mines:
+                    possibly_moves.append((i, j))
 
-        return random.choice(posibly_moves)
-                    
-            
+        return random.choice(possibly_moves)
