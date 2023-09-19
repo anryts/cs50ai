@@ -203,22 +203,24 @@ class MinesweeperAI():
         #       based on the value of `cell` and `count`
         #       find all neighbors and after that, you'll use a formula {A, B, C} = count
         neighbors = set()
+        count_of_mines = 0
         for i in range(cell[0] - 1, cell[0] + 2):
             for j in range(cell[1] - 1, cell[1] + 2):
-
                 # Ignore the cell itself
                 if (i, j) != cell:
-                    neighbors.add((i, j))
-
-                # TODO: read this comments
-
+                    continue
                 # If cell are already safe, ignore them
-
-                # If cells are known to be mines, reduce count by 1 and ignore them:
-
+                if (i, j) in self.safes:
+                    continue
+                    # If cells are known to be mines, reduce count by 1 and ignore them:
+                if (i, j) in self.mines:
+                    count_of_mines -= 1
+                    continue
                 # Otherwise add them to sentence if they are in the game board
+                neighbors.add((i, j))
 
-        self.knowledge.append(Sentence(neighbors, count))
+        new_sentence = Sentence(neighbors, count - count_of_mines)
+        self.knowledge.append(new_sentence)
 
         #    4) mark any additional cells as safe or as mines
         #    if it can be concluded based on the AI's knowledge base
@@ -234,9 +236,15 @@ class MinesweeperAI():
             if safes:
                 for safe in safes:
                     self.mark_safe(safe)
-        # TODO: Remove any empty sentences from knowledge base:
 
         # TODO: Try to infer new sentences from the current ones:
+        for sentence in self.knowledge:
+            if (new_sentence.cells.issubset(sentence.cells)
+                    and sentence.count > 0
+                    and new_sentence.count > 0
+                    and new_sentence != sentence):
+                new_sentence_subset = Sentence(sentence.cells - new_sentence.cells, sentence.count - new_sentence.count)
+                self.knowledge.append(new_sentence_subset)
 
     def make_safe_move(self) -> tuple[int, int]:
         """
@@ -249,7 +257,7 @@ class MinesweeperAI():
         """
         self_cells = self.safes
         # Intersect by & with two tuples
-        possibly_turns = list(self.moves_made & self_cells)
+        possibly_turns = list(self_cells - self.moves_made)
         if len(possibly_turns) == 0:
             return self.make_random_move()
 

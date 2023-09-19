@@ -66,7 +66,6 @@ while True:
         titleRect = title.get_rect()
         titleRect.center = ((width / 2), 50)
         screen.blit(title, titleRect)
-
         # Rules
         rules = [
             "Click a cell to reveal it.",
